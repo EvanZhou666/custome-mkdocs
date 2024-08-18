@@ -5,7 +5,7 @@ import logging
 import os
 import time
 from typing import TYPE_CHECKING, Sequence
-from urllib.parse import urljoin, urlsplit
+from urllib.parse import urljoin, urlsplit, unquote
 
 import jinja2
 from jinja2.exceptions import TemplateNotFound
@@ -320,7 +320,7 @@ def build(config: MkDocsConfig, *, serve_url: str | None = None, dirty: bool = F
         for page in nav.pages:
             if page.title is None:
                 last_url = page.url.split("/")[-1]
-                page.title = last_url.split(".", 1)[0]
+                page.title = unquote(last_url.split(".", 1)[0])
 
         # Run `env` plugin events.
         env = config.plugins.on_env(env, config=config, files=files)
