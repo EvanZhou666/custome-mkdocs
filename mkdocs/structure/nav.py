@@ -130,15 +130,21 @@ class Link(StructureItem):
 def get_navigation(files: Files, config: MkDocsConfig) -> Navigation:
     """Build site navigation from config and files."""
     documentation_pages = files.documentation_pages()
+    # 加载静态的html文件
+    static_pages = files.static_pages()
+    # 合并两个列表
+    documentation_pages = documentation_pages + static_pages
     nav_config = config['nav']
     if nav_config is None:
         documentation_pages = sorted(documentation_pages, key=file_sort_key)
         nav_config = nest_paths(f.src_uri for f in documentation_pages if f.inclusion.is_in_nav())
+    # nav_config.append("git_commit_history.html")
     items = _data_to_navigation(nav_config, files, config)
     if not isinstance(items, list):
         items = [items]
 
     # Get only the pages from the navigation, ignoring any sections and links.
+    # 这里所有的pages都是没有titles属性的
     pages = _get_by_type(items, Page)
 
     # Include next, previous and parent links.

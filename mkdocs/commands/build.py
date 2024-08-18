@@ -155,7 +155,7 @@ def _populate_page(page: Page, config: MkDocsConfig, files: Files, dirty: bool =
 
         # Run the `pre_page` plugin event
         page = config.plugins.on_pre_page(page, config=config, files=files)
-
+        # 获取markdown文件内容
         page.read_source(config)
         assert page.markdown is not None
 
@@ -203,7 +203,7 @@ def _build_page(
 
         # Activate page. Signals to theme that this is the current page.
         page.active = True
-
+        # 这里page.title就有值了
         context = get_context(nav, doc_files, config, page)
 
         # Allow 'template:' override in md source files.
@@ -307,6 +307,7 @@ def build(config: MkDocsConfig, *, serve_url: str | None = None, dirty: bool = F
                     excluded.append(urljoin(serve_url, file.url))
                 Page(None, file, config)
             assert file.page is not None
+            # 这里会补充page的title属性
             _populate_page(file.page, config, files, dirty)
         if excluded:
             log.info(
@@ -314,6 +315,12 @@ def build(config: MkDocsConfig, *, serve_url: str | None = None, dirty: bool = F
                 "but will be excluded from `mkdocs build` per `draft_docs` config:\n  - "
                 + "\n  - ".join(excluded)
             )
+
+        #  兜底，这里由于我把html静态文件添加到了nav导航条中，但是却没有设置标题
+        for page in nav.pages:
+            if page.title is None:
+                last_url = page.url.split("/")[-1]
+                page.title = last_url.split(".", 1)[0]
 
         # Run `env` plugin events.
         env = config.plugins.on_env(env, config=config, files=files)
